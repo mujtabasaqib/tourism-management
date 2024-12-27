@@ -4,10 +4,10 @@ const router = express.Router();
 
 // CREATE: Add a new visitor
 router.post('/', async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, visitedAttractions } = req.body;
 
   try {
-    const newVisitor = new Visitor({ name, email });
+    const newVisitor = new Visitor({ name, email, visitedAttractions });
     await newVisitor.save();
     res.status(201).json(newVisitor);
   } catch (err) {
