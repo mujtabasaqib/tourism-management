@@ -70,4 +70,31 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+//Custom business logic
+//route for adding new attraction without rating
+router.post('/add-attraction', async (req, res) => {
+  const { name, location, entryFee } = req.body;
+
+  try {
+    const newAttraction = new Attraction({ name, location, entryFee });
+    await newAttraction.save();
+    res.status(201).json(newAttraction); 
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+//top 5 attractions with the highest ratings
+router.get('/top-rated', async (req, res) => {
+  try {
+    const topAttractions = await Attraction.find()
+      .sort({ rating: -1 }) 
+      .limit(5);             
+
+    res.status(200).json(topAttractions);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 module.exports = router;

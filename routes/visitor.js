@@ -70,4 +70,60 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+//Custom business logic
+//register a new visitor
+router.post('/add-visitor', async (req, res) => {
+  const { name, email } = req.body;
+  try {
+    const existingVisitor = await Visitor.findOne({ email });
+
+    if (existingVisitor) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
+    const newVisitor = new Visitor({ name, email });
+    await newVisitor.save();
+
+    res.status(201).json(newVisitor);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+//list of visitors with the count of attractions they have reviewed
+router.get('/activity', async (req, res) => {
+  try {
+    const visitorsWithReviewCount = await Review.aggregate([
+      {
+        $group: {
+          _id: "$visitor", 
+          reviewCount: { $count: {} }
+        }
+      },
+      {
+        $lookup: {
+          from: 'visitors', 
+          localField: '_id',
+          foreignField: '_id', 
+          as: 'visitorDetails'
+        }
+      },
+      {
+        $unwind: "$visitorDetails" 
+      },
+      {
+        $project: {
+          _id: 0, 
+          visitor: "$visitorDetails", 
+          reviewCount: 1 
+        }
+      }
+    ]);
+
+    res.status(200).json(visitorsWithReviewCount);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 module.exports = router;
